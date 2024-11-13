@@ -1,0 +1,70 @@
+import re
+
+class AnalisadorLexico:
+    def __init__(self, codigo_fonte):
+        self.codigo_fonte = codigo_fonte
+        self.tokens = []  
+        self.posicao = 0  
+
+    def analisar(self):
+        especificacoes_tokens = [
+            ('NUMERO',    r'\b\d+\b'),             
+            ('STRING',    r'"([^"\\]|\\.)*"'),      
+            ('IDENTIFICADOR', r'\b[a-zA-Z_]\w*\b'), 
+            ('PALAVRA_CHAVE', r'\b(if|else|for|while|return|function|class|def|import|from|print|try|catch|finally|await|async|continue|break|switch|case|default|public|private|protected|static|void|new|delete|this|super|let|const|var|yield|import|export|in|instanceof|lambda|interface|package|extends|implements|throws|throw|readonly|synchronized|volatile)\b'),
+            ('OPERADOR',  r'[+\-*/=<>!&|%]'),        
+            ('DELIMITADOR', r'[(){}[\],.;]'),        
+            ('ESPACO', r'\s+'),                      
+            ('NAO_RECONHECIDO', r'.'),               
+        ]
+
+        expressoes_regulares = [(nome, re.compile(padrao)) for nome, padrao in especificacoes_tokens]
+
+        while self.posicao < len(self.codigo_fonte):
+            encontrou_token = False
+            for nome_token, regex_token in expressoes_regulares:
+                match = regex_token.match(self.codigo_fonte, self.posicao)
+                if match:
+                    valor = match.group(0)
+                    if nome_token != 'ESPACO':  
+                        self.tokens.append((nome_token, valor)) 
+                    self.posicao += len(valor)  
+                    encontrou_token = True
+                    break
+
+            if not encontrou_token:
+                raise ValueError(f"Caractere inesperado: {self.codigo_fonte[self.posicao]}")
+
+    def obter_tokens(self):
+        return self.tokens
+
+    def contar_tokens(self):
+        return len(self.tokens)
+
+
+def executar_analise_lexica():
+    print("Digite o código que deseja analisar (pressione Enter duas vezes para finalizar):")
+    
+    codigo_fonte = ""
+    while True:
+        linha = input()  
+        if linha == "":  
+            break
+        codigo_fonte += linha + "\n"  
+
+    analisador = AnalisadorLexico(codigo_fonte)
+    
+    try:
+        analisador.analisar()  
+        tokens = analisador.obter_tokens() 
+        print("\nTokens encontrados:")
+        for token in tokens:
+            print(f'{token[0]}: {token[1]}')  
+
+        print(f"\nTotal de tokens encontrados: {analisador.contar_tokens()}")
+
+    except ValueError as e:
+        print(f"Erro de análise léxica: {e}")  
+
+if __name__ == "__main__":
+    executar_analise_lexica()
